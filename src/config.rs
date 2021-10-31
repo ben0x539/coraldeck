@@ -1,14 +1,14 @@
 use crate::error::Error;
+use crate::modules;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::fs;
 use std::sync::Arc;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
     pub streamdeck: StreamdeckConfig,
-    pub modules: BTreeMap<String, toml::Value>,
+    pub modules: modules::Config,
     pub action: Vec<Action>,
 }
 

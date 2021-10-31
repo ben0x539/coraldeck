@@ -7,7 +7,7 @@ use std::time::Duration;
 use tokio::sync::mpsc::Sender;
 
 #[derive(Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct KeylightsConfig {
+pub struct Config {
     pub names: Vec<String>,
 }
 
@@ -132,16 +132,16 @@ impl Module for KeyLight {
     }
 }
 
-pub async fn instantiate(cfg: toml::Value) -> Result<super::DynModule, super::Error> {
-    let config: KeylightsConfig = cfg.try_into()?;
+impl Config {
+    pub async fn build(&self) -> Result<super::DynModule, super::Error> {
+        let mut lights: Vec<KeyLight> = Vec::new();
+        for l in &self.names {
+            let key = KeyLight::new_from_name(&l, Some(Duration::from_secs(5)))
+                .await
+                .unwrap();
+            lights.push(key);
+        }
 
-    let mut lights: Vec<KeyLight> = Vec::new();
-    for l in config.names {
-        let key = KeyLight::new_from_name(&l, Some(Duration::from_secs(5)))
-            .await
-            .unwrap();
-        lights.push(key);
+        Ok(Box::new(KeyLights::new(lights).await))
     }
-
-    Ok(Box::new(KeyLights::new(lights).await))
 }

@@ -22,15 +22,15 @@ pub enum MOTUError {
     RequestError(#[from] reqwest::Error),
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct MOTUConfig {
+#[derive(Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
+pub struct Config {
     pub ip: Ipv4Addr,
     pub color: Vec<u8>,
 }
 
 #[allow(dead_code)]
 pub struct MOTU {
-    config: MOTUConfig,
+    config: Config,
     client_id: u32,
     url: String,
 
@@ -42,7 +42,7 @@ pub struct MOTU {
 }
 
 impl MOTU {
-    pub async fn new(cfg: MOTUConfig) -> MOTU {
+    pub async fn new(cfg: Config) -> MOTU {
         let mut rng = rand::thread_rng();
         let client_id = rng.gen::<u32>();
 
@@ -218,8 +218,8 @@ impl Module for MOTU {
     }
 }
 
-pub async fn instantiate(cfg: toml::Value) -> Result<super::DynModule, super::Error> {
-    let config: MOTUConfig = cfg.try_into()?;
-
-    Ok(Box::new(MOTU::new(config).await))
+impl Config {
+    pub async fn build(&self) -> Result<super::DynModule, super::Error> {
+        Ok(Box::new(MOTU::new(self.clone()).await))
+    }
 }

@@ -42,8 +42,8 @@ async fn main() -> Result<(), error::Error> {
         let mut boot = graphics::Boot::new(&mut sman);
         boot.header().await;
 
-        for (name, module) in cfg.modules.clone() {
-            let imod = modules::instantiate_by_name(&name, module).await?;
+        for (_, module) in &cfg.modules {
+            let imod = module.build().await?;
             boot.load(&imod.name().to_uppercase()).await;
             loaded_modules.push(imod);
         }
